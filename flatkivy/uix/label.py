@@ -10,9 +10,13 @@ from kivy.properties import (
     BooleanProperty,
     StringProperty,
     AliasProperty,
+    NumericProperty,
 )
 from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.scatter import Scatter
+from kivy.graphics.svg import Svg
+from kivy.graphics import Scale
 
 from flatkivy.font_definitions import theme_font_styles
 from flatkivy.theming import ThemableBehavior
@@ -38,6 +42,10 @@ Builder.load_string(
             size: self.size
             
 <FlatColorIcon>  
+
+<FlatSvgIcon>:
+    do_rotation: False
+
 """
 )
 
@@ -208,3 +216,25 @@ class FlatColorIcon(FlatLabel, FloatLayout):
             icon_layer.text_color = color
             self.add_widget(icon_layer)
 
+
+class FlatSvgIcon(FlatLabel, Scatter):
+    filename = StringProperty(None)
+    """Filename that includes the path to your SVG icon.
+    :attr:`filename` is an :class:`~kivy.properties.StringProperty`
+    and defaults to `None`.
+    """
+
+    def __init__(self, **kwargs):
+        super(FlatSvgIcon, self).__init__(**kwargs)
+        with self.canvas:
+            self._scale = Scale(1.)
+            self.svg = Svg(self.filename)
+        self.size = self.svg.width, self.svg.height
+        self.size_hint = (None, None)
+        self.bind(size=self._do_scale)
+
+    def _do_scale(self, *args):
+        if [self.svg.width, self.svg.height] != self.size:
+            self._scale.xyz = ( (self.width / self.svg.width),
+                                (self.height / self.svg.height),
+                              1)
